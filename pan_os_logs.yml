@@ -1,0 +1,24 @@
+---
+- name: Fetch logs from Palo Alto Firewall
+  hosts: localhost
+  gather_facts: no
+  collections:
+    - paloaltonetworks.panos
+  vars:
+    ip_address: "192.168.1.1"
+    username: "admin"
+    password: "SuperSecret"
+    command: "show log traffic max 10"  # Fetch a maximum of 10 traffic logs
+
+  tasks:
+    - name: Execute operational command to fetch logs
+      panos_op:
+        ip_address: "{{ ip_address }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        cmd: "{{ command }}"
+      register: result
+
+    - name: Show fetched logs
+      debug:
+        var: result

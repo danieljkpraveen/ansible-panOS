@@ -1,0 +1,8 @@
+To install ansible requirements file :
+- ansible-galaxy collection install -r requirements.yml
+
+Log types :
+- "traffic", "threat", "url", "wildfire", "data",
+  "config", "system", "hipmatch", "gpc", "iptag",
+  "tunnel", "alarm", "auth", "user-id", "decryption", "unified"
+

@@ -1,0 +1,43 @@
+---
+- name: Create a security policy on Palo Alto Firewall
+  hosts: localhost
+  gather_facts: no
+  collections:
+    - paloaltonetworks.panos
+
+  vars:
+    ip_address: "192.168.1.1"       # Replace with your firewall IP
+    username: "admin"               # Replace with your username
+    password: "SuperSecret"         # Replace with your password
+    rule_name: "Allow_HTTP_Traffic"
+    source_zone: "trust"
+    destination_zone: "untrust"
+    source_ips:
+      - "any"
+    destination_ips:
+      - "any"
+    applications:
+      - "web-browsing"
+    action: "allow"
+    log_end: true
+
+  tasks:
+    - name: Create security policy rule
+      panos_security_rule:
+        ip_address: "{{ ip_address }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        rule_name: "{{ rule_name }}"
+        source_zones: ["{{ source_zone }}"]
+        destination_zones: ["{{ destination_zone }}"]
+        source_ip: "{{ source_ips }}"
+        destination_ip: "{{ destination_ips }}"
+        application: "{{ applications }}"
+        action: "{{ action }}"
+        log_end: "{{ log_end }}"
+        commit: true
+      register: create_rule_result
+
+    - name: Show result of rule creation
+      debug:
+        var: create_rule_result

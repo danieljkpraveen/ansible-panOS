@@ -1,0 +1,36 @@
+---
+- name: Upgrade PAN-OS using Galaxy collection
+  hosts: localhost
+  gather_facts: no
+  collections:
+    - paloaltonetworks.panos
+  vars:
+    ip_address: "192.168.1.1"
+    username: "admin"
+    password: "SuperSecret"
+    version: "10.2.0"
+
+  tasks:
+    - name: Download software image
+      panos_software:
+        ip_address: "{{ ip_address }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        version: "{{ version }}"
+        download: true
+
+    - name: Install software image
+      panos_software:
+        ip_address: "{{ ip_address }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        version: "{{ version }}"
+        install: true
+
+    - name: Reboot the firewall
+      panos_software:
+        ip_address: "{{ ip_address }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        version: "{{ version }}"
+        restart: true
