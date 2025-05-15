@@ -1,0 +1,24 @@
+---
+- name: Get content version info from PAN-OS firewall
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    firewall_ip: "192.0.2.1"
+    username: "admin"
+    password: "yourpassword"
+
+  tasks:
+    - name: Get threat/AV/URL content versions
+      paloaltonetworks.panos.panos_op:
+        provider:
+          ip_address: "{{ firewall_ip }}"
+          username: "{{ username }}"
+          password: "{{ password }}"
+        cmd: "<request content upgrade info>"
+      register: content_info
+
+    - name: Show content versions
+      debug:
+        msg: "{{ content_info.stdout }}"

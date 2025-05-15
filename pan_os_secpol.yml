@@ -6,34 +6,36 @@
     - paloaltonetworks.panos
 
   vars:
-    ip_address: "192.168.1.1"       # Replace with your firewall IP
-    username: "admin"               # Replace with your username
-    password: "SuperSecret"         # Replace with your password
-    rule_name: "Allow_HTTP_Traffic"
-    source_zone: "trust"
-    destination_zone: "untrust"
-    source_ips:
-      - "any"
-    destination_ips:
-      - "any"
-    applications:
-      - "web-browsing"
-    action: "allow"
+    ip_address: "192.168.29.55"
+    username: "admin"
+    password: "P@ssw0rd"
+    rule_name: "AllowSSH"
+    source_zone: "any"
+    destination_zone: "any"
+    source_ips: "any"
+    destination_ips: "any"
+    applications: "ssh"
+    service: "application-default"
+    rule_action: "allow"
     log_end: true
+
+    provider:
+      ip_address: "{{ ip_address }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
 
   tasks:
     - name: Create security policy rule
-      panos_security_rule:
-        ip_address: "{{ ip_address }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
+      paloaltonetworks.panos.panos_security_rule:
+        provider: "{{ provider }}"
         rule_name: "{{ rule_name }}"
-        source_zones: ["{{ source_zone }}"]
-        destination_zones: ["{{ destination_zone }}"]
+        source_zone: "{{ source_zone }}"
+        destination_zone: "{{ destination_zone }}"
         source_ip: "{{ source_ips }}"
         destination_ip: "{{ destination_ips }}"
         application: "{{ applications }}"
-        action: "{{ action }}"
+        service: "{{ service }}"
+        action: "{{ rule_action }}"
         log_end: "{{ log_end }}"
         commit: true
       register: create_rule_result
@@ -41,3 +43,4 @@
     - name: Show result of rule creation
       debug:
         var: create_rule_result
+  connection: local

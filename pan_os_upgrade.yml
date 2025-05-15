@@ -1,36 +1,105 @@
 ---
-- name: Upgrade PAN-OS using Galaxy collection
+- name: Upgrade PAN-OS HA Pair (passive first using panos_active_in_ha)
   hosts: localhost
   gather_facts: no
   collections:
     - paloaltonetworks.panos
+
   vars:
-    ip_address: "192.168.1.1"
-    username: "admin"
-    password: "SuperSecret"
-    version: "10.2.0"
+    firewall_1:
+      ip: "192.168.29.55"
+      username: "admin"
+      password: "P@ssw0rd"
+    firewall_2:
+      ip: "192.168.29.56"
+      username: "admin"
+      password: "P@ssw0rd"
+    target_version: "11.1.2"
 
   tasks:
-    - name: Download software image
+
+    - name: Check if firewall 1 is active
+      panos_active_in_ha:
+        ip_address: "{{ firewall_1.ip }}"
+        username: "{{ firewall_1.username }}"
+        password: "{{ firewall_1.password }}"
+      register: ha1_status
+
+    - name: Set active and passive firewall facts
+      set_fact:
+        active_fw: "{{ firewall_1 if ha1_status.active else firewall_2 }}"
+        passive_fw: "{{ firewall_2 if ha1_status.active else firewall_1 }}"
+
+    - name: Download image on passive firewall
       panos_software:
-        ip_address: "{{ ip_address }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        version: "{{ version }}"
+        ip_address: "{{ passive_fw.ip }}"
+        username: "{{ passive_fw.username }}"
+        password: "{{ passive_fw.password }}"
+        version: "{{ target_version }}"
         download: true
 
-    - name: Install software image
+    - name: Install image on passive firewall
       panos_software:
-        ip_address: "{{ ip_address }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        version: "{{ version }}"
+        ip_address: "{{ passive_fw.ip }}"
+        username: "{{ passive_fw.username }}"
+        password: "{{ passive_fw.password }}"
+        version: "{{ target_version }}"
         install: true
 
-    - name: Reboot the firewall
+    - name: Reboot passive firewall
       panos_software:
-        ip_address: "{{ ip_address }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        version: "{{ version }}"
+        ip_address: "{{ passive_fw.ip }}"
+        username: "{{ passive_fw.username }}"
+        password: "{{ passive_fw.password }}"
+        version: "{{ target_version }}"
         restart: true
+
+    - name: Wait for passive firewall to come back online
+      wait_for:
+        host: "{{ passive_fw.ip }}"
+        port: 443
+        delay: 30
+        timeout: 600
+        state: started
+
+    - name: Confirm passive firewall is still passive
+      retries: 10
+      delay: 30
+      until: not ha_recheck.active
+      panos_active_in_ha:
+        ip_address: "{{ passive_fw.ip }}"
+        username: "{{ passive_fw.username }}"
+        password: "{{ passive_fw.password }}"
+      register: ha_recheck
+
+    - name: Download image on active firewall
+      panos_software:
+        ip_address: "{{ active_fw.ip }}"
+        username: "{{ active_fw.username }}"
+        password: "{{ active_fw.password }}"
+        version: "{{ target_version }}"
+        download: true
+
+    - name: Install image on active firewall
+      panos_software:
+        ip_address: "{{ active_fw.ip }}"
+        username: "{{ active_fw.username }}"
+        password: "{{ active_fw.password }}"
+        version: "{{ target_version }}"
+        install: true
+
+    - name: Reboot active firewall
+      panos_software:
+        ip_address: "{{ active_fw.ip }}"
+        username: "{{ active_fw.username }}"
+        password: "{{ active_fw.password }}"
+        version: "{{ target_version }}"
+        restart: true
+
+    - name: Wait for active firewall to come back online
+      wait_for:
+        host: "{{ active_fw.ip }}"
+        port: 443
+        delay: 30
+        timeout: 600
+        state: started

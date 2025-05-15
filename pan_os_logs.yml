@@ -5,10 +5,10 @@
   collections:
     - paloaltonetworks.panos
   vars:
-    ip_address: "192.168.1.1"
+    ip_address: "192.168.29.55"
     username: "admin"
-    password: "SuperSecret"
-    command: "show log traffic max 10"  # Fetch a maximum of 10 traffic logs
+    password: "P@ssw0rd"
+    command: "show log system"
 
   tasks:
     - name: Execute operational command to fetch logs
@@ -22,3 +22,4 @@
     - name: Show fetched logs
       debug:
         var: result
+  connection: local  # Use 'local' since we are running locally
