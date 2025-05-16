@@ -1,3 +1,6 @@
+High Availability is a crucial feature that allows you to group two identical Palo Alto Networks firewalls together
+in a redundant pair. 
+
 built in modules
 
 - wait_for (ansible built in : https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html)
